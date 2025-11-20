@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="fil">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Reaction Time Test — White & Grey</title>
+<style>
+  :root {
+    --bg: #f6f7f8;
+    --card: #ffffff;
+    --text: #111111;
+    --muted: #6b7280;
+    --accent: #d4d4d8;
+    --accent-strong: #111111;
+    --shadow: 0 10px 30px rgba(0,0,0,0.08);
+    --radius: 18px;
+    --speed: 250ms;
+  }
+  [data-theme="grey"] {
+    --bg: #111315;
+    --card: #17191c;
+    --text: #f4f4f5;
+    --muted: #a1a1aa;
+    --accent: #2a2d31;
+    --accent-strong: #f4f4f5;
+    --shadow: 0 10px 30px rgba(0,0,0,0.4);
+  }
+  * { box-sizing: border-box; }
+  html, body { height: 100%; }
+  body {
+    margin: 0;
+    font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
+    background:
+      radial-gradient(1200px 600px at 10% -10%, rgba(0,0,0,0.06), transparent 40%),
+      radial-gradient(900px 400px at 120% 10%, rgba(0,0,0,0.06), transparent 45%),
+      var(--bg);
+    color: var(--text);
+    transition: background-color var(--speed) ease, color var(--speed) ease;
+  }
+  .page { max-width: 860px; margin: 0 auto; padding: 28px; min-height: 100%;
+    display: grid; grid-template-rows: auto 1fr auto; gap: 24px; }
+  header { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; }
+  .brand { display: flex; align-items: center; gap: 12px; }
+  .brand .dot { width: 14px; height: 14px; border-radius: 50%;
+    background: linear-gradient(180deg, var(--accent), rgba(0,0,0,0.08));
+    box-shadow: 0 6px 14px rgba(0,0,0,0.08), inset 0 0 0 1px rgba(255,255,255,0.3);
+    animation: float 3.5s ease-in-out infinite; }
+  @keyframes float { 0%, 100% { transform: translateY(0px); } 50% { transform: translateY(-4px); } }
+
+  .controls { display: flex; gap: 10px; align-items: center; }
+  .toggle {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: var(--card); border: 1px solid var(--accent); border-radius: 999px;
+    padding: 8px 14px; box-shadow: var(--shadow); cursor: pointer; user-select: none;
+    transition: transform var(--speed), background var(--speed), border-color var(--speed);
+    font-size: 14px;
+  }
+  .toggle:hover { transform: translateY(-1px); }
+  .toggle .knob { width: 22px; height: 22px; border-radius: 50%;
+    background: linear-gradient(180deg, #e5e7eb, #cfd2d7);
+    border: 1px solid rgba(0,0,0,0.08); box-shadow: inset 0 0 0 1px rgba(255,255,255,0.6); }
+
+  .card { background: var(--card); border: 1px solid var(--accent); border-radius: var(--radius); box-shadow: var(--shadow); overflow: hidden; }
+  .pad { position: relative; min-height: 360px; display: grid; place-items: center; text-align: center; padding: 24px;
+    transition: background var(--speed), color var(--speed), transform var(--speed);
+    background: linear-gradient(135deg, #fbfbfb, #f0f0f0); }
+  [data-theme="grey"] .pad { background: linear-gradient(135deg, #17191c, #1c1f23); }
+  .pad.waiting { background: linear-gradient(135deg, #ededed, #dcdcdc); }
+  [data-theme="grey"] .pad.waiting { background: linear-gradient(135deg, #22262b, #2a2f35); }
+  .pad.ready { color: var(--accent-strong); background: linear-gradient(135deg, #3f3f46, #1f2937); }
+  .pad.ready .cta { color: #ffffff; text-shadow: 0 2px 10px rgba(0,0,0,0.35); }
+
+  .shine { position: absolute; inset: 0;
+    background: linear-gradient(120deg, transparent 30%, rgba(255,255,255,0.15) 38%, transparent 46%,
+      transparent 54%, rgba(255,255,255,0.08) 60%, transparent 70%);
+    mix-blend-mode: overlay; animation: shine 3.6s ease-in-out infinite; pointer-events: none; }
+  @keyframes shine { 0% { transform: translateX(-30%); opacity: 0.4; } 50% { transform: translateX(0%); opacity: 0.7; } 100% { transform: translateX(30%); opacity: 0.4; } }
+
+  .status { position: absolute; top: 16px; left: 16px; font-size: 14px; color: var(--muted);
+    display: inline-flex; align-items: center; gap: 8px; padding: 8px 12px; border-radius: 999px;
+    background: rgba(0,0,0,0.03); border: 1px solid var(--accent); backdrop-filter: blur(6px); }
+  .content h1 { font-weight: 700; letter-spacing: -0.01em; margin: 8px 0 6px; font-size: clamp(26px, 4vw, 34px); }
+  .content p { margin: 0; color: var(--muted); font-size: 14px; }
+  .cta { margin-top: 14px; font-size: clamp(22px, 6vw, 48px); font-weight: 800; letter-spacing: 0.02em; transition: transform var(--speed); }
+
+  .actions { display: flex; gap: 12px; justify-content: center; padding: 18px; border-top: 1px solid var(--accent);
+    background: linear-gradient(180deg, transparent, rgba(0,0,0,0.02)); }
+  button { appearance: none; border: 1px solid var(--accent); background: var(--card); color: var(--text);
+    padding: 12px 16px; border-radius: 12px; font-weight: 600; cursor: pointer;
+    transition: transform var(--speed), background var(--speed), border-color var(--speed); box-shadow: var(--shadow); }
+  button.primary { background: linear-gradient(180deg, #ededed, #dcdcdc); }
+  button:hover { transform: translateY(-1px); }
+  button:active { transform: translateY(0); }
+
+  .grid { display: grid; grid-template-columns: 1fr; gap: 16px; padding: 18px; }
+  @media (min-width: 720px) { .grid { grid-template-columns: 1.2fr 1fr; } }
+  .stats, .history { border-top: 1px solid var(--accent); padding-top: 12px; }
+  .stat-row { display: flex; justify-content: space-between; align-items: center; margin: 8px 0; }
+  .stat-row .value { font-weight: 700; }
+
+  .bars { display: grid; gap: 8px; }
+  .bar { height: 14px; border-radius: 999px; background: linear-gradient(90deg, #9ca3af, #4b5563);
+    position: relative; overflow: hidden; transform-origin: left center; animation: grow var(--speed) ease; }
+  @keyframes grow { from { transform: scaleX(0.7); opacity: 0.3; } to { transform: scaleX(1); opacity: 1; } }
+  .bar::after {
+    content: attr(data-label);
+    position: absolute; right: 8px; top: 50%; transform: translateY(-50%);
+    font-size: 11px; color: #fff; text-shadow: 0 1px 6px rgba(0,0,0,0.35);
+  }
+
+  .hint { color: var(--muted); font-size: 13px; padding: 0 18px 18px; text-align: center; }
+  .shake { animation: shake 450ms cubic-bezier(.36,.07,.19,.97) both; }
+  @keyframes shake {
+    10%, 90% { transform: translateX(-1px); }
+    20%, 80% { transform: translateX(2px); }
+    30%, 50%, 70% { transform: translateX(-4px); }
+    40%, 60% { transform: translateX(4px); }
+  }
+</style>
+</head>
+<body>
+  <div class="page" id="app" data-theme="white">
+    <header>
+      <div class="brand">
+        <div class="dot"></div>
+        <div>
+          <div style="font-weight:700">Reaction Time Test</div>
+          <div style="font-size:12px;color:var(--muted)">White/Grey theme • Animated</div>
+        </div>
+      </div>
+
+      <div class="controls">
+        <div class="toggle" id="toggleTheme" aria-label="Toggle theme">
+          <div class="knob"></div>
+          <span>Theme: <strong>White</strong></span>
+        </div>
+        <div class="toggle" id="toggleUnit" aria-label="Toggle unit">
+          <div class="knob"></div>
+          <span>Unit: <strong>ms</strong></span>
+        </div>
+      </div>
+    </header>
+
+    <main class="card">
+      <div class="pad" id="pad">
+        <div class="shine"></div>
+        <div class="status" id="status">Idle • Click “Start”</div>
+        <div class="content">
+          <h1 id="title">Test your reaction</h1>
+          <p id="desc">Kapag sinabi kong <strong>TAP NOW</strong>, i-tap mo agad ang pad.</p>
+          <div class="cta" id="cta">Ready?</div>
+        </div>
+      </div>
+
+      <div class="actions">
+        <button id="startBtn" class="primary">Start</button>
+        <button id="resetBtn">Reset</button>
+      </div>
+
+      <div class="grid">
+        <section class="stats">
+          <h3 style="margin:0 0 6px">Stats</h3>
+          <div class="stat-row"><span>Last</span><span class="value" id="lastStat">—</span></div>
+          <div class="stat-row"><span>Best</span><span class="value" id="bestStat">—</span></div>
+          <div class="stat-row"><span>Average</span><span class="value" id="avgStat">—</span></div>
+          <div class="stat-row"><span>Tries</span><span class="value" id="countStat">0</span></div>
+        </section>
+
+        <section class="history">
+          <h3 style="margin:0 0 6px">History</h3>
+          <div class="bars" id="bars"></div>
+        </section>
+      </div>
+
+      <div class="hint">
+        Tip: Pwede mo ring gamitin ang <strong>Space</strong> o <strong>Enter</strong> para mag‑tap. <br>
+        Unit toggle: <strong>ms</strong> (milliseconds) o <strong>s</strong> (seconds).
+      </div>
+    </main>
+
+    <footer style="opacity:.8; font-size:12px; text-align:center">
+      Built for you • White/Grey minimalist UI
+    </footer>
+  </div>
+
+<script>
+(() => {
+  const app = document.getElementById('app');
+  const pad = document.getElementById('pad');
+  const statusEl = document.getElementById('status');
+  const titleEl = document.getElementById('title');
+  const descEl = document.getElementById('desc');
+  const ctaEl = document.getElementById('cta');
+  const startBtn = document.getElementById('startBtn');
+  const resetBtn = document.getElementById('resetBtn');
+  const bars = document.getElementById('bars');
+  const toggleTheme = document.getElementById('toggleTheme');
+  const toggleUnit = document.getElementById('toggleUnit');
+
+  const statsEls = {
+    last: document.getElementById('lastStat'),
+    best: document.getElementById('bestStat'),
+    avg:  document.getElementById('avgStat'),
+    count: document.getElementById('countStat')
+  };
+
+  const state = {
+    phase: 'idle',
+    startTime: 0,
+    timeoutId: null,
+    timesMs: [],
+    unit: 'ms'
+  };
+
+  const randomDelay = () => 800 + Math.random() * 2000;
+
+  function setPhase(phase) {
+    state.phase = phase;
+    pad.classList.remove('waiting', 'ready', 'shake');
+    switch (phase) {
+      case 'idle':
+        statusEl.textContent = 'Idle • Click “Start”';
+        titleEl.textContent = 'Test your reaction';
+        descEl.innerHTML = 'Kapag sinabi kong <strong>TAP NOW</strong>, i-tap mo agad ang pad.';
+        ctaEl.textContent = 'Ready?';
+        break;
+      case 'waiting':
+        pad.classList.add('waiting');
+        statusEl.textContent = 'Waiting… Don\'t tap yet.';
+        titleEl.textContent = 'Get ready…';
+        descEl.textContent = 'Wait for the signal before tapping.';
+        ctaEl.textContent = 'Don\'t tap yet';
+        break;
+      case 'ready':
+        pad.classList.add('ready');
+        statusEl.textContent = 'NOW!';
+        titleEl.textContent = 'TAP NOW';
+        descEl.textContent = 'Tap as fast as you can.';
+        ctaEl.textContent = 'GO!';
+        break;
+    }
+  }
+
+  function fmt(ms) {
+    if (state.unit === 'ms') return `${ms} ms`;
+    return `${(ms / 1000).toFixed(3)} s`;
+  }
+
+  function start() {
+    clearTimeout(state.timeoutId);
+    setPhase('waiting');
+    const delay = randomDelay();
+    state.timeoutId = setTimeout(() => {
+      state.startTime = performance.now();
+      setPhase('ready');
+    }, delay);
+  }
+
+  function handleTap() {
+    if (state.phase === 'waiting') {
+      clearTimeout(state.timeoutId);
+      statusEl.textContent = 'Too soon! Napaaga.';
+      pad.classList.add('shake');
+      setTimeout(() => setPhase('idle'), 600);
+      return;
+    }
+    if (state.phase === 'ready') {
+      const now = performance.now();
+      const ms = Math.round(now - state.startTime);
+      state.timesMs.push(ms);
+      updateStats();
+      statusEl.textContent = `Nice! ${fmt(ms)}`;
+      titleEl.textContent = fmt(ms);
+      descEl.textContent = 'Click “Start” to try again.';
+      ctaEl.textContent = 'Good job';
+      setPhase('idle');
+    }
+  }
+
+  function updateStats() {
+    const arr = state.timesMs;
+    const last = arr[arr.length - 1];
+    const best = arr.length ? Math.min(...arr) : null;
+    const avg = arr.length ? Math.round(arr.reduce((a,b)=>a+b,0) / arr.length) : null;
+
+    statsEls.last.textContent = last != null ? fmt(last) : '—';
+    statsEls.best.textContent = best != null ? fmt(best) : '—';
+    statsEls.avg.textContent  = avg  != null ? fmt(avg)  : '—';
+    statsEls.count.textContent = String(arr.length);
+    bars.innerHTML = '';
+    const maxShown = 12;
+    const slice = arr.slice(-maxShown);
+    const maxVal = Math.max(300, ...(slice.length ? slice : [300]));
+    slice.forEach(ms => {
+      const widthPct = Math.max(12, Math.min(100, Math.round((ms / maxVal) * 100)));
+      const bar = document.createElement('div');
+      bar.className = 'bar';
+      bar.style.width = widthPct + '%';
+      bar.setAttribute('data-label', fmt(ms));
+      bars.appendChild(bar);
+    });
+  }
+
+  function resetAll() {
+    clearTimeout(state.timeoutId);
+    state.timesMs = [];
+    setPhase('idle');
+    updateStats();
+    bars.innerHTML = '';
+  }
+  startBtn.addEventListener('click', start);
+  resetBtn.addEventListener('click', resetAll);
+  pad.addEventListener('click', handleTap);
+  pad.addEventListener('touchstart', (e) => { e.preventDefault(); handleTap(); }, { passive: false });
+  document.addEventListener('keydown', (e) => {
+    if (e.key === ' ' || e.key === 'Enter') handleTap();
+  });
+  toggleTheme.addEventListener('click', () => {
+    const current = app.getAttribute('data-theme');
+    const next = current === 'grey' ? 'white' : 'grey';
+    app.setAttribute('data-theme', next);
+    toggleTheme.querySelector('span').innerHTML = `Theme: <strong>${next[0].toUpperCase() + next.slice(1)}</strong>`;
+  });
+  toggleUnit.addEventListener('click', () => {
+    state.unit = state.unit === 'ms' ? 's' : 'ms';
+    toggleUnit.querySelector('span').innerHTML = `Unit: <strong>${state.unit}</strong>`;
+    updateStats();
+  });
+  setPhase('idle');
+  updateStats();
+})();
+</script>
+</body>
+</html>
