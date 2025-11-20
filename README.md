@@ -2,7 +2,7 @@
 
 Minimalist, animated **Reaction Time Test** in white/grey themes. Mobile-friendly, with stats and history bars. Includes **unit toggle** (milliseconds ↔ seconds).
 
-![Banner](assets/banner.png)
+![Banner](image.png)
 
 ## ✨ Features
 - White/Grey theme toggle (animated)
